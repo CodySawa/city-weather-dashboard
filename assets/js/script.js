@@ -8,7 +8,8 @@ const currTempEl = document.getElementById("current-temperature");
 const currWindEl = document.getElementById("current-wind-speed");
 const currHumidityEl = document.getElementById("current-humidity");
 const currUVEl = document.getElementById("current-UV-index");
-const uvi = document.getElementById("uvindex");
+const uviEl = document.getElementById("uvindex");
+const fiveDayTitleEl = document.getElementById("five-title");
 const fiveDayEl = document.getElementById("future-container");
 
 var getCurrWeather = function (cityName) {
@@ -38,25 +39,25 @@ var displayCurrWeather = function (weatherInfo) {
     getUv(lat, lon);
 }
 
-var getUv = function(lat, lon) {
+var getUv = function (lat, lon) {
     var apiKey = "cbdbbe78f7df51461b16d1ad2996a690";
     var apiURL = `https://api.openweathermap.org/data/2.5/uvi?appid=${apiKey}&lat=${lat}&lon=${lon}`;
 
     fetch(apiURL)
-        .then(function(response) {
-            response.json().then(function(data) {
-                let uvi = document.createElement("span");
+        .then(function (response) {
+            response.json().then(function (data) {
+                let uviEl = document.createElement("span");
                 if (data.value < 4) {
-                    uvi.setAttribute("class", "badge bg-success");
+                    uviEl.setAttribute("class", "badge bg-success");
                 } else if (data.value < 8) {
-                    uvi.setAttribute("class", "badge bg-warning");
+                    uviEl.setAttribute("class", "badge bg-warning");
                 } else {
-                    uvi.setAttribute("class", "badge bg-danger");
+                    uviEl.setAttribute("class", "badge bg-danger");
                 }
-                uvi.textContent = data.value;
+                uviEl.textContent = data.value;
 
                 currUVEl.innerHTML = "UV Index: ";
-                currUVEl.appendChild(uvi);
+                currUVEl.appendChild(uviEl);
             })
         })
 }
@@ -65,17 +66,54 @@ var kelvinToFarenheit = function (Kel) {
     return Math.floor(1.8 * (Kel - 273) + 32);
 }
 
-var getFiveForecast = function(cityName) {
+var getFiveForecast = function (cityName) {
     var apiKey = "cbdbbe78f7df51461b16d1ad2996a690";
     var apiURL = `https://api.openweathermap.org/data/2.5/forecast?q=${cityName}&units=imperial&appid=${apiKey}`;
 
     fetch(apiURL)
-        .then(function(response) {
-            response.json().then(function(data) {
+        .then(function (response) {
+            response.json().then(function (data) {
                 console.log(data);
-                // displayFiveForecast(data);
+                displayFiveForecast(data);
             })
         })
+}
+
+var displayFiveForecast = function (forecastInfo) {
+    fiveDayEl.textContent = "";
+    fiveDayTitleEl.textContent = "5-Day Forecast:";
+
+    var forecast = forecastInfo.list;
+    for (var i = 4; i < forecast.length; i += 8) {
+        var dayForecast = forecast[i];
+
+        var forecastEl = document.createElement("div");
+        forecastEl.classList = "card bg-primary text-light m-2 p-2 col-2";
+
+        var forecastDate = document.createElement("h5");
+        forecastDate.textContent = moment.unix(dayForecast.dt).format("MMM D, YYYY");
+        forecastEl.appendChild(forecastDate);
+
+        var forecastWeatherImg = document.createElement("img")
+        forecastWeatherImg.height = 100;
+        forecastWeatherImg.width = 100;
+        forecastWeatherImg.setAttribute("src", `https://openweathermap.org/img/wn/${dayForecast.weather[0].icon}@2x.png`);
+        forecastEl.appendChild(forecastWeatherImg);
+
+        var forecastTempEl = document.createElement("span");
+        forecastTempEl.textContent = "Temp: " + dayForecast.main.temp + " °F";
+        forecastEl.appendChild(forecastTempEl);
+
+        var forecastWindEl = document.createElement("span");
+        forecastWindEl.textContent = "Wind: " + dayForecast.wind.speed + " MPH";
+        forecastEl.appendChild(forecastWindEl);
+
+        var forecastHumEl = document.createElement("span");
+        forecastHumEl.textContent = "Humidity: " + dayForecast.main.humidity + "  %";
+        forecastEl.appendChild(forecastHumEl);
+
+        fiveDayEl.appendChild(forecastEl);
+    }
 }
 
 searchEl.addEventListener("click", function () {
