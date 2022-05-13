@@ -1,16 +1,16 @@
-const cityInputEl = document.getElementById("city-name");
-const searchEl = document.getElementById("search-button");
-const historyEl = document.getElementById("history");
-const currWeatherEl = document.getElementById("current-forecast-container");
-const cityNameEl = document.getElementById("searched-city");
-const currWeatherImgEl = document.getElementById("current-weather-img");
-const currTempEl = document.getElementById("current-temperature");
-const currWindEl = document.getElementById("current-wind-speed");
-const currHumidityEl = document.getElementById("current-humidity");
-const currUVEl = document.getElementById("current-UV-index");
-const uviEl = document.getElementById("uvindex");
-const fiveDayTitleEl = document.getElementById("five-title");
-const fiveDayEl = document.getElementById("future-container");
+var cityInputEl = document.getElementById("city-name");
+var searchEl = document.getElementById("search-button");
+var historyEl = document.getElementById("history");
+var currWeatherEl = document.getElementById("current-forecast-container");
+var cityNameEl = document.getElementById("searched-city");
+var currWeatherImgEl = document.getElementById("current-weather-img");
+var currTempEl = document.getElementById("current-temperature");
+var currWindEl = document.getElementById("current-wind-speed");
+var currHumidityEl = document.getElementById("current-humidity");
+var currUVEl = document.getElementById("current-UV-index");
+var uviEl = document.getElementById("uvindex");
+var fiveDayTitleEl = document.getElementById("five-title");
+var fiveDayEl = document.getElementById("future-container");
 
 var getCurrWeather = function (cityName) {
     var apiKey = "cbdbbe78f7df51461b16d1ad2996a690";
@@ -73,7 +73,6 @@ var getFiveForecast = function (cityName) {
     fetch(apiURL)
         .then(function (response) {
             response.json().then(function (data) {
-                console.log(data);
                 displayFiveForecast(data);
             })
         })
@@ -116,12 +115,51 @@ var displayFiveForecast = function (forecastInfo) {
     }
 }
 
+var saveSearch = function (cityName) {
+    if (localStorage.getItem('cityHistory' ) == null) {
+        localStorage.setItem('cityHistory', '[]');
+    }
+    var oldHistory = JSON.parse(localStorage.getItem('cityHistory'));
+    oldHistory.unshift(cityName);
+
+    localStorage.setItem('cityHistory', JSON.stringify(oldHistory));
+};
+
+var displayHistory = function () {
+    historyEl.innerHTML = "";
+    var cityArr = JSON.parse(localStorage.getItem('cityHistory'));
+    if (cityArr.length > 8) {
+        for (var i = 0; i < 8; i++) {
+            pastSearchEl = document.createElement("button");
+            pastSearchEl.textContent = cityArr[i];
+            pastSearchEl.classList = "d-flex w-100 btn-light border p-2";
+            pastSearchEl.setAttribute("data-city", cityArr[i])
+            pastSearchEl.setAttribute("type", "submit");
+            historyEl.prepend(pastSearchEl);
+        }
+    } else {
+        for (var i = 0; i < cityArr.length; i++) {
+            pastSearchEl = document.createElement("button");
+            pastSearchEl.textContent = cityArr[i];
+            pastSearchEl.classList = "d-flex w-100 btn-light border p-2";
+            pastSearchEl.setAttribute("data-city", cityArr[i])
+            pastSearchEl.setAttribute("type", "submit");
+            historyEl.prepend(pastSearchEl);
+        }
+    }
+}
+
+historyEl.addEventListener("click",  function(event) {
+    var city = event.target.getAttribute("data-city")
+    getCurrWeather(city);
+    getFiveForecast(city);
+})
+
 searchEl.addEventListener("click", function () {
     const citySearched = cityInputEl.value;
-    if (citySearched) {
-        getCurrWeather(citySearched);
-        getFiveForecast(citySearched);
-    } else {
-        alert("Enter a valid city name");
-    }
+    getCurrWeather(citySearched);
+    getFiveForecast(citySearched);
+    cityInputEl.value = "";
+    saveSearch(citySearched);
+    displayHistory();
 })
